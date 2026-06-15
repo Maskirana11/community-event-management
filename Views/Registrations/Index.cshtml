@@ -1,0 +1,82 @@
+@model IEnumerable<CommunityEvents.Models.Registration>
+@using CommunityEvents.Models
+@{
+    ViewData["Title"] = "All Registrations";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>📋 All Registrations</h1>
+            <p>Admin view of all participant-event registrations</p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-title">No registrations yet</div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Participant</th>
+                        <th>Event</th>
+                        <th>Event Date</th>
+                        <th>Registered On</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="td-name">@r.Participant.Name</div>
+                                <div style="font-size:12px; color:var(--text-muted);">@r.Participant.Email</div>
+                            </td>
+                            <td>
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@r.EventId"
+                                   style="color:var(--accent-primary); text-decoration:none; font-weight:500;">
+                                    @r.Event.Name
+                                </a>
+                            </td>
+                            <td>@r.Event.Date.ToString("MMM dd, yyyy")</td>
+                            <td>@r.RegisteredAt.ToString("MMM dd, yyyy")</td>
+                            <td><span class="badge badge-@r.Status.ToString().ToLower()">@r.Status</span></td>
+                            <td>
+                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <input type="hidden" name="status" value="@RegistrationStatus.Confirmed" />
+                                        <button type="submit" class="btn btn-success btn-sm" title="Confirm">✅</button>
+                                    </form>
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <input type="hidden" name="status" value="@RegistrationStatus.Cancelled" />
+                                        <button type="submit" class="btn btn-warning btn-sm" title="Cancel">⛔</button>
+                                    </form>
+                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <input type="hidden" name="status" value="@RegistrationStatus.Attended" />
+                                        <button type="submit" class="btn btn-secondary btn-sm" title="Mark Attended">🎫</button>
+                                    </form>
+                                    <form asp-action="Delete" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete this registration?')">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

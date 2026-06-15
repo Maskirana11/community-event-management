@@ -1,0 +1,59 @@
+@model CommunityEvents.Models.Participant
+@{
+    ViewData["Title"] = "Participant Details";
+}
+<div class="page-container">
+    <div style="margin-bottom:24px;"><a class="btn btn-secondary btn-sm" asp-action="Index">← Back</a></div>
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>@Model.Name</h1>
+            <p>@Model.Email @(Model.Organization != null ? $"• {Model.Organization}" : "")</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.Id">✏️ Edit</a>
+            <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.Id">🗑️ Delete</a>
+        </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+        <div class="card">
+            <div class="card-header"><span class="card-title">📋 Event Registrations (@Model.Registrations.Count)</span></div>
+            @if (!Model.Registrations.Any())
+            {
+                <div class="card-body"><div class="empty-state" style="padding:20px;"><div class="empty-state-icon">📝</div><div class="empty-state-title">No registrations</div></div></div>
+            }
+            else
+            {
+                <div class="table-container" style="border:none; border-radius:0;">
+                    <table>
+                        <thead><tr><th>Event</th><th>Date</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model.Registrations)
+                            {
+                                <tr>
+                                    <td class="td-name">@r.Event.Name</td>
+                                    <td>@r.Event.Date.ToString("MMM dd")</td>
+                                    <td><span class="badge badge-@r.Status.ToString().ToLower()">@r.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div style="font-size:13px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:16px;">Contact Info</div>
+                <div style="margin-bottom:12px;"><div style="font-size:11px;color:var(--text-muted);">Email</div><div>@Model.Email</div></div>
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <div style="margin-bottom:12px;"><div style="font-size:11px;color:var(--text-muted);">Phone</div><div>@Model.Phone</div></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Organization))
+                {
+                    <div style="margin-bottom:12px;"><div style="font-size:11px;color:var(--text-muted);">Organization</div><div>@Model.Organization</div></div>
+                }
+                <div><div style="font-size:11px;color:var(--text-muted);">Member Since</div><div>@Model.RegisteredAt.ToString("MMMM dd, yyyy")</div></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,65 @@
+@model IEnumerable<CommunityEvents.Models.Venue>
+@{
+    ViewData["Title"] = "Venues";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>🏛️ Venues</h1>
+            <p>Manage event locations and their capacities</p>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">➕ Add Venue</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">🏢</div>
+            <div class="empty-state-title">No venues yet</div>
+            <a class="btn btn-primary" asp-action="Create" style="margin-top:16px;">Add First Venue</a>
+        </div>
+    }
+    else
+    {
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">
+            @foreach (var venue in Model)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                            <div>
+                                <div style="font-size:17px; font-weight:700; margin-bottom:4px;">@venue.Name</div>
+                                <div style="font-size:13px; color:var(--text-secondary);">📍 @venue.Address, @venue.City</div>
+                            </div>
+                            <div style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.2); border-radius:8px; padding:8px 12px; text-align:center;">
+                                <div style="font-size:18px; font-weight:700; color:var(--accent-primary);">@venue.Capacity</div>
+                                <div style="font-size:10px; color:var(--text-muted);">CAPACITY</div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(venue.Description))
+                        {
+                            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">@venue.Description</p>
+                        }
+                        <div style="display:flex; gap:8px; font-size:12px; color:var(--text-muted); margin-bottom:16px; flex-wrap:wrap;">
+                            @if (!string.IsNullOrEmpty(venue.ContactPhone))
+                            {
+                                <span>📞 @venue.ContactPhone</span>
+                            }
+                            @if (!string.IsNullOrEmpty(venue.ContactEmail))
+                            {
+                                <span>✉️ @venue.ContactEmail</span>
+                            }
+                            <span>🎪 @venue.EventVenues.Count events</span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <a class="btn btn-secondary btn-sm" asp-action="Details" asp-route-id="@venue.Id">Details</a>
+                            <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@venue.Id">Edit</a>
+                            <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@venue.Id">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

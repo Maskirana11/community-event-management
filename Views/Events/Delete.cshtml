@@ -1,0 +1,30 @@
+@model CommunityEvents.Models.Event
+@{
+    ViewData["Title"] = "Delete Event";
+}
+
+<div class="page-container">
+    <div style="max-width:600px; margin:0 auto;">
+        <div class="card">
+            <div class="card-header" style="background:rgba(239,68,68,0.05); border-bottom-color:rgba(239,68,68,0.15);">
+                <span class="card-title" style="color:var(--danger)">🗑️ Delete Event</span>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">⚠️ This action cannot be undone. All registrations for this event will also be deleted.</div>
+
+                <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">@Model.Name</h2>
+                <p style="color:var(--text-secondary); margin-bottom:16px;">@Model.Description</p>
+
+                <div style="display:flex; gap:12px; color:var(--text-secondary); font-size:14px; margin-bottom:24px;">
+                    <span>📅 @Model.Date.ToString("MMM dd, yyyy")</span>
+                    <span>🏷️ @Model.EventType</span>
+                </div>
+
+                <form asp-action="Delete" method="post" style="display:flex; gap:12px; justify-content:flex-end;">
+                    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                    <button type="submit" class="btn btn-danger">🗑️ Yes, Delete Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

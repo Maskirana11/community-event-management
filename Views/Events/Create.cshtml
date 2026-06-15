@@ -1,0 +1,145 @@
+@model CommunityEvents.ViewModels.EventCreateEditViewModel
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<div class="page-container">
+    <div style="max-width:860px; margin:0 auto;">
+        <div style="margin-bottom:24px;">
+            <a class="btn btn-secondary btn-sm" asp-action="Index">← Back to Events</a>
+        </div>
+
+        <div class="page-header">
+            <div class="page-header-info">
+                <h1>➕ Create New Event</h1>
+                <p>Fill in the details below to create a community event</p>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header"><span class="card-title">📝 Event Details</span></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Event.Name">Event Name *</label>
+                        <input asp-for="Event.Name" class="form-control" placeholder="e.g., Annual Tech Summit 2026" />
+                        <span asp-validation-for="Event.Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Event.Description">Description *</label>
+                        <textarea asp-for="Event.Description" class="form-control" rows="4" placeholder="Describe the event..."></textarea>
+                        <span asp-validation-for="Event.Description" class="text-danger"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Event.Date">Date *</label>
+                            <input asp-for="Event.Date" class="form-control" type="date" />
+                            <span asp-validation-for="Event.Date" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Event.Time">Time *</label>
+                            <input asp-for="Event.Time" class="form-control" type="time" />
+                            <span asp-validation-for="Event.Time" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Event.EventType">Event Type *</label>
+                            <select asp-for="Event.EventType" class="form-control">
+                                <option value="General">General</option>
+                                <option value="Conference">Conference</option>
+                                <option value="Festival">Festival</option>
+                                <option value="Competition">Competition</option>
+                                <option value="Networking">Networking</option>
+                                <option value="Wellness">Wellness</option>
+                                <option value="Tour">Tour</option>
+                                <option value="Workshop">Workshop</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Event.MaxCapacity">Max Capacity</label>
+                            <input asp-for="Event.MaxCapacity" class="form-control" type="number" placeholder="Leave blank for unlimited" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-check" asp-for="Event.IsActive">
+                            <input asp-for="Event.IsActive" class="form-check-input" type="checkbox" />
+                            <span>Event is Active / Visible</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Venue Selection -->
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header">
+                    <span class="card-title">🏛️ Assign Venues</span>
+                    <a class="btn btn-secondary btn-sm" asp-controller="Venues" asp-action="Create" target="_blank">+ New Venue</a>
+                </div>
+                <div class="card-body">
+                    @if (!Model.AllVenues.Any())
+                    {
+                        <div class="empty-state" style="padding:20px;">
+                            <p>No venues available. <a asp-controller="Venues" asp-action="Create" style="color:var(--accent-primary)">Create a venue</a> first.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="checkbox-group">
+                            @foreach (var venue in Model.AllVenues)
+                            {
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="SelectedVenueIds" value="@venue.Id"
+                                           @(Model.SelectedVenueIds.Contains(venue.Id) ? "checked" : "") />
+                                    <span>
+                                        <strong>@venue.Name</strong><br />
+                                        <small style="color:var(--text-muted)">@venue.City &bull; Cap: @venue.Capacity</small>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Activity Selection -->
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header">
+                    <span class="card-title">🎯 Assign Activities</span>
+                    <a class="btn btn-secondary btn-sm" asp-controller="Activities" asp-action="Create" target="_blank">+ New Activity</a>
+                </div>
+                <div class="card-body">
+                    @if (!Model.AllActivities.Any())
+                    {
+                        <div class="empty-state" style="padding:20px;">
+                            <p>No activities available. <a asp-controller="Activities" asp-action="Create" style="color:var(--accent-primary)">Create an activity</a> first.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="checkbox-group">
+                            @foreach (var activity in Model.AllActivities)
+                            {
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="SelectedActivityIds" value="@activity.Id"
+                                           @(Model.SelectedActivityIds.Contains(activity.Id) ? "checked" : "") />
+                                    <span>
+                                        <strong>@activity.Name</strong><br />
+                                        <small style="color:var(--text-muted)">@activity.Type @(activity.DurationMinutes.HasValue ? $"• {activity.DurationMinutes} min" : "")</small>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div style="display:flex; gap:12px; justify-content:flex-end;">
+                <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">✅ Create Event</button>
+            </div>
+        </form>
+    </div>
+</div>

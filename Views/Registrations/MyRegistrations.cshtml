@@ -1,0 +1,122 @@
+@model IEnumerable<CommunityEvents.Models.Registration>
+@{
+    ViewData["Title"] = "My Registrations";
+    var participantName = ViewBag.ParticipantName as string;
+    var email = ViewBag.Email as string;
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>🎫 My Registrations</h1>
+            @if (!string.IsNullOrEmpty(participantName))
+            {
+                <p>Welcome back, <strong>@participantName</strong>! Here are your event registrations.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Email lookup form -->
+    <div class="card" style="margin-bottom:28px;">
+        <div class="card-body">
+            <form method="get" asp-action="MyRegistrations" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="form-group" style="flex:1; min-width:240px; margin-bottom:0;">
+                    <label class="form-label">Look up by Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="your@email.com" value="@email" />
+                </div>
+                <button type="submit" class="btn btn-primary">🔍 Find My Registrations</button>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any() && !string.IsNullOrEmpty(email))
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-title">No registrations found</div>
+            <p>You haven't registered for any events yet.</p>
+            <a class="btn btn-primary" asp-controller="Events" asp-action="Index" style="margin-top:16px;">Browse Events</a>
+        </div>
+    }
+    else if (Model.Any())
+    {
+        <!-- Stats mini-bar -->
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px;">
+            @{
+                var confirmed = Model.Count(r => r.Status == CommunityEvents.Models.RegistrationStatus.Confirmed);
+                var pending = Model.Count(r => r.Status == CommunityEvents.Models.RegistrationStatus.Pending);
+                var upcoming = Model.Count(r => r.Event.Date >= DateTime.Today);
+            }
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px 20px; text-align:center;">
+                <div style="font-size:22px; font-weight:800; color:var(--success);">@confirmed</div>
+                <div style="font-size:12px; color:var(--text-muted);">Confirmed</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px 20px; text-align:center;">
+                <div style="font-size:22px; font-weight:800; color:var(--warning);">@pending</div>
+                <div style="font-size:12px; color:var(--text-muted);">Pending</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px 20px; text-align:center;">
+                <div style="font-size:22px; font-weight:800; color:var(--accent-primary);">@upcoming</div>
+                <div style="font-size:12px; color:var(--text-muted);">Upcoming</div>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            @foreach (var r in Model)
+            {
+                var isPast = r.Event.Date < DateTime.Today;
+                <div class="card" style="@(isPast ? "opacity:0.7;" : "")">
+                    <div style="display:flex; align-items:stretch;">
+                        <div style="width:6px; background:@(r.Status == CommunityEvents.Models.RegistrationStatus.Confirmed ? "var(--success)" : r.Status == CommunityEvents.Models.RegistrationStatus.Cancelled ? "var(--danger)" : "var(--warning)"); border-radius:12px 0 0 12px; flex-shrink:0;"></div>
+                        <div style="flex:1; padding:20px 24px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                                <div>
+                                    <a asp-controller="Events" asp-action="Details" asp-route-id="@r.EventId"
+                                       style="font-size:16px; font-weight:700; color:var(--text-primary); text-decoration:none;">
+                                        @r.Event.Name
+                                    </a>
+                                    <div style="display:flex; gap:12px; font-size:13px; color:var(--text-secondary); margin-top:4px; flex-wrap:wrap;">
+                                        <span>📅 @r.Event.Date.ToString("ddd, MMM dd yyyy") at @DateTime.Today.Add(r.Event.Time).ToString("hh:mm tt")</span>
+                                        @if (r.Event.EventVenues.Any())
+                                        {
+                                            <span>📍 @r.Event.EventVenues.First().Venue.Name</span>
+                                        }
+                                        <span>🏷️ @r.Event.EventType</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <span class="badge badge-@r.Status.ToString().ToLower()">@r.Status</span>
+                                    @if (isPast)
+                                    {
+                                        <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-muted);">Past</span>
+                                    }
+                                </div>
+                            </div>
+                            @if (r.Event.EventActivities.Any())
+                            {
+                                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                                    @foreach (var ea in r.Event.EventActivities.Take(4))
+                                    {
+                                        <span class="tag">@ea.Activity.Name</span>
+                                    }
+                                </div>
+                            }
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                                <span style="font-size:12px; color:var(--text-muted);">Registered @r.RegisteredAt.ToString("MMM dd, yyyy")</span>
+                                @if (r.Status != CommunityEvents.Models.RegistrationStatus.Cancelled && !isPast)
+                                {
+                                    <form asp-action="Cancel" method="post">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <input type="hidden" name="email" value="@email" />
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Cancel this registration?')">Cancel Registration</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

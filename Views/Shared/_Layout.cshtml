@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Community Event Management System – Create, manage, and join events in your community." />
+    <title>@ViewData["Title"] - Community Events</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+            <div class="sidebar-brand-icon">🎉</div>
+            <div class="sidebar-brand-text">Community<br /><span>Events</span></div>
+        </a>
+
+        <div class="sidebar-nav">
+            <div class="nav-section-label">Overview</div>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+               asp-controller="Home" asp-action="Index">
+                <span class="nav-icon">📊</span> Dashboard
+            </a>
+
+            <div class="nav-section-label" style="margin-top:12px">Events</div>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")"
+               asp-controller="Events" asp-action="Index">
+                <span class="nav-icon">📅</span> All Events
+            </a>
+            <a class="nav-item" asp-controller="Events" asp-action="Create">
+                <span class="nav-icon">➕</span> Create Event
+            </a>
+
+            <div class="nav-section-label" style="margin-top:12px">Management</div>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venues" ? "active" : "")"
+               asp-controller="Venues" asp-action="Index">
+                <span class="nav-icon">🏛️</span> Venues
+            </a>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Activities" ? "active" : "")"
+               asp-controller="Activities" asp-action="Index">
+                <span class="nav-icon">🎯</span> Activities
+            </a>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Participants" ? "active" : "")"
+               asp-controller="Participants" asp-action="Index">
+                <span class="nav-icon">👥</span> Participants
+            </a>
+            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Registrations" ? "active" : "")"
+               asp-controller="Registrations" asp-action="Index">
+                <span class="nav-icon">📋</span> Registrations
+            </a>
+
+            <div class="nav-section-label" style="margin-top:12px">User</div>
+            <a class="nav-item" asp-controller="Registrations" asp-action="MyRegistrations">
+                <span class="nav-icon">🎫</span> My Registrations
+            </a>
+        </div>
+
+        <!-- Sidebar footer -->
+        <div style="padding: 16px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted);">
+            Community Events &copy; @DateTime.Now.Year
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-title">@(ViewData["Title"] ?? "Dashboard")</div>
+            <div class="topbar-actions">
+                <a class="btn btn-secondary btn-sm" asp-controller="Registrations" asp-action="MyRegistrations">
+                    🎫 My Registrations
+                </a>
+                <a class="btn btn-primary btn-sm" asp-controller="Events" asp-action="Create">
+                    ➕ New Event
+                </a>
+            </div>
+        </header>
+
+        <!-- Toast Notifications -->
+        <div style="padding: 0 32px; margin-top: 20px;">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">✅ @TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">❌ @TempData["Error"]</div>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <div class="alert alert-warning">⚠️ @TempData["Warning"]</div>
+            }
+        </div>
+
+        <main>
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<script>
+    // Auto-hide alerts
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            a.style.transition = 'opacity 0.5s';
+            a.style.opacity = '0';
+            setTimeout(() => a.remove(), 500);
+        });
+    }, 4000);
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

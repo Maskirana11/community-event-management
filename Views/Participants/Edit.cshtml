@@ -1,0 +1,42 @@
+@model CommunityEvents.Models.Participant
+@{
+    ViewData["Title"] = "Edit Participant";
+}
+<div class="page-container">
+    <div style="max-width:600px; margin:0 auto;">
+        <div style="margin-bottom:24px;"><a class="btn btn-secondary btn-sm" asp-action="Index">← Back</a></div>
+        <div class="page-header"><div class="page-header-info"><h1>✏️ Edit Participant</h1></div></div>
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="RegisteredAt" />
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Name">Full Name *</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Email">Email *</label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Phone">Phone</label>
+                            <input asp-for="Phone" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Organization">Organization</label>
+                            <input asp-for="Organization" class="form-control" />
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px; justify-content:flex-end;">
+                        <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

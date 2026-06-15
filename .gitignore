@@ -1,0 +1,45 @@
+## Build output
+bin/
+obj/
+
+## .NET user secrets & local overrides
+*.user
+appsettings.Development.json
+
+## SQLite database (auto-created on first run)
+*.db
+*.db-shm
+*.db-wal
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.ReSharper.user
+
+## VS Code
+.vscode/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+## Logs
+*.log
+logs/
+
+## OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## dotnet tool install script (not part of the project)
+dotnet-install.sh
+
+## ASP.NET Core Data Protection keys
+DataProtection-Keys/

@@ -1,0 +1,69 @@
+@model CommunityEvents.Models.Venue
+@{
+    ViewData["Title"] = "Venue Details";
+}
+
+<div class="page-container">
+    <div style="margin-bottom:24px;"><a class="btn btn-secondary btn-sm" asp-action="Index">← Back to Venues</a></div>
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>@Model.Name</h1>
+            <p>📍 @Model.Address, @Model.City</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.Id">✏️ Edit</a>
+            <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.Id">🗑️ Delete</a>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px;">
+        <div class="card">
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p style="color:var(--text-secondary); margin-bottom:20px;">@Model.Description</p>
+                }
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:10px; padding:16px;">
+                        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Capacity</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--accent-primary);">@Model.Capacity</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:10px; padding:16px;">
+                        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Events Hosted</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--success);">@Model.EventVenues.Count</div>
+                    </div>
+                </div>
+                @if (Model.EventVenues.Any())
+                {
+                    <div style="margin-top:24px;">
+                        <div style="font-size:13px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:12px;">Linked Events</div>
+                        @foreach (var ev in Model.EventVenues)
+                        {
+                            <a asp-controller="Events" asp-action="Details" asp-route-id="@ev.EventId"
+                               style="display:block; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; text-decoration:none; color:var(--text-primary); margin-bottom:8px; transition:all 0.2s;">
+                                @ev.Event.Name — <span style="color:var(--text-muted); font-size:13px;">@ev.Event.Date.ToString("MMM dd, yyyy")</span>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div style="font-size:13px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:16px;">Contact</div>
+                @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                {
+                    <div style="margin-bottom:12px;"><div style="font-size:11px; color:var(--text-muted);">Phone</div><div>@Model.ContactPhone</div></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.ContactEmail))
+                {
+                    <div><div style="font-size:11px; color:var(--text-muted);">Email</div><div>@Model.ContactEmail</div></div>
+                }
+                @if (string.IsNullOrEmpty(Model.ContactPhone) && string.IsNullOrEmpty(Model.ContactEmail))
+                {
+                    <p style="color:var(--text-muted); font-size:13px;">No contact info provided.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
