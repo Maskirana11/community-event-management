@@ -1,0 +1,90 @@
+@inject NavigationManager NavigationManager
+
+<nav class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="">
+        <div class="sidebar-brand-icon">🎉</div>
+        <div class="sidebar-brand-text">Community<br /><span>Events</span></div>
+    </a>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Overview</div>
+        <a class="nav-item @(IsActive("") ? "active" : "")" href="">
+            <span class="nav-icon">📊</span> Dashboard
+        </a>
+
+        <div class="nav-section-label" style="margin-top:12px">Events</div>
+        <a class="nav-item @(IsActive("events") ? "active" : "")" href="events">
+            <span class="nav-icon">📅</span> All Events
+        </a>
+
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <a class="nav-item @(IsActive("events/create") ? "active" : "")" href="events/create">
+                    <span class="nav-icon">➕</span> Create Event
+                </a>
+            </Authorized>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="nav-section-label" style="margin-top:12px">Management</div>
+                <a class="nav-item @(IsActive("venues") ? "active" : "")" href="venues">
+                    <span class="nav-icon">🏛️</span> Venues
+                </a>
+                <a class="nav-item @(IsActive("activities") ? "active" : "")" href="activities">
+                    <span class="nav-icon">🎯</span> Activities
+                </a>
+                <a class="nav-item @(IsActive("participants") ? "active" : "")" href="participants">
+                    <span class="nav-icon">👥</span> Participants
+                </a>
+                <a class="nav-item @(IsActive("registrations/admin") ? "active" : "")" href="registrations/admin">
+                    <span class="nav-icon">📋</span> Registrations
+                </a>
+            </Authorized>
+        </AuthorizeView>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-section-label" style="margin-top:12px">User</div>
+                <a class="nav-item @(IsActive("registrations/my") ? "active" : "")" href="registrations/my">
+                    <span class="nav-icon">🎫</span> My Registrations
+                </a>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    <!-- Sidebar footer -->
+    <div style="padding: 16px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted);">
+        Community Events &copy; @DateTime.Now.Year
+    </div>
+</nav>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private bool IsActive(string href)
+    {
+        if (string.IsNullOrEmpty(href))
+        {
+            return string.IsNullOrEmpty(currentUrl);
+        }
+        return currentUrl?.StartsWith(href, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

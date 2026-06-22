@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Activity> Activities { get; set; }
     public DbSet<Participant> Participants { get; set; }
     public DbSet<Registration> Registrations { get; set; }
+    public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<EventVenue> EventVenues { get; set; }
     public DbSet<EventActivity> EventActivities { get; set; }
 

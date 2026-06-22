@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using CommunityEvents.Data;
 using CommunityEvents.Models;
 using CommunityEvents.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CommunityEvents.Controllers;
 
@@ -12,6 +14,7 @@ public class RegistrationsController : Controller
     public RegistrationsController(ApplicationDbContext context) { _context = context; }
 
     // GET: All registrations (admin view)
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
         var registrations = await _context.Registrations
@@ -23,6 +26,7 @@ public class RegistrationsController : Controller
     }
 
     // GET: Register for event
+    [Authorize]
     public async Task<IActionResult> Register(int eventId)
     {
         var ev = await _context.Events.FindAsync(eventId);
@@ -39,6 +43,7 @@ public class RegistrationsController : Controller
     // POST: Register for event
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> Register(RegisterViewModel vm)
     {
         var ev = await _context.Events
@@ -53,19 +58,26 @@ public class RegistrationsController : Controller
             return RedirectToAction("Details", "Events", new { id = vm.EventId });
         }
 
-        // Find or create participant by email
-        if (string.IsNullOrWhiteSpace(vm.Email))
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var name = User.Identity?.Name ?? "Unknown";
+
+        if (string.IsNullOrWhiteSpace(email))
         {
-            ModelState.AddModelError("Email", "Email is required to register.");
-            vm.EventName = ev.Name;
-            return View(vm);
+            TempData["Error"] = "Could not identify your email.";
+            return RedirectToAction("Index", "Home");
         }
 
-        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == vm.Email);
+        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == email);
         if (participant == null)
         {
-            TempData["Error"] = "No participant found with that email. Please add yourself as a participant first.";
-            return RedirectToAction("Create", "Participants");
+            // Auto-create participant for the logged-in user
+            participant = new Participant
+            {
+                Name = name,
+                Email = email
+            };
+            _context.Participants.Add(participant);
+            await _context.SaveChangesAsync();
         }
 
         // Check if already registered
@@ -91,19 +103,20 @@ public class RegistrationsController : Controller
         await _context.SaveChangesAsync();
 
         TempData["Success"] = $"Successfully registered for '{ev.Name}'!";
-        return RedirectToAction("MyRegistrations", new { email = vm.Email });
+        return RedirectToAction("MyRegistrations");
     }
 
     // GET: My Registrations
-    public async Task<IActionResult> MyRegistrations(string? email)
+    [Authorize]
+    public async Task<IActionResult> MyRegistrations()
     {
+        var email = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrWhiteSpace(email))
             return View(new List<Registration>());
 
         var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == email);
         if (participant == null)
         {
-            TempData["Error"] = "No participant found with that email.";
             return View(new List<Registration>());
         }
 
@@ -122,21 +135,29 @@ public class RegistrationsController : Controller
     // POST: Cancel registration
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Cancel(int id, string? email)
+    [Authorize]
+    public async Task<IActionResult> Cancel(int id)
     {
-        var reg = await _context.Registrations.FindAsync(id);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == email);
+
+        if (participant == null) return NotFound();
+
+        var reg = await _context.Registrations.FirstOrDefaultAsync(r => r.Id == id && r.ParticipantId == participant.Id);
+        
         if (reg != null)
         {
             reg.Status = RegistrationStatus.Cancelled;
             await _context.SaveChangesAsync();
             TempData["Success"] = "Registration cancelled.";
         }
-        return RedirectToAction(nameof(MyRegistrations), new { email });
+        return RedirectToAction(nameof(MyRegistrations));
     }
 
     // POST: Update status (admin)
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateStatus(int id, RegistrationStatus status)
     {
         var reg = await _context.Registrations.FindAsync(id);
@@ -152,6 +173,7 @@ public class RegistrationsController : Controller
     // POST: Delete registration (admin)
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var reg = await _context.Registrations.FindAsync(id);

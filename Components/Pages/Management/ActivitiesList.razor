@@ -1,0 +1,73 @@
+@page "/activities"
+@inject ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "Admin")]
+@attribute [StreamRendering]
+
+<PageTitle>Activities</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>🎯 Activities</h1>
+            <p>Manage activities that can be added to events</p>
+        </div>
+    </div>
+
+    @if (activities == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var activity in activities)
+                    {
+                        <tr>
+                            <td class="td-name">@activity.Name</td>
+                            <td><span class="badge badge-general">@activity.Type</span></td>
+                            <td>@(activity.DurationMinutes.HasValue ? $"{activity.DurationMinutes} min" : "-")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteActivity(activity.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Activity>? activities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActivities();
+    }
+
+    private async Task LoadActivities()
+    {
+        activities = await DbContext.Activities.ToListAsync();
+    }
+
+    private async Task DeleteActivity(int id)
+    {
+        var activity = await DbContext.Activities.FindAsync(id);
+        if (activity != null)
+        {
+            DbContext.Activities.Remove(activity);
+            await DbContext.SaveChangesAsync();
+            await LoadActivities();
+        }
+    }
+}

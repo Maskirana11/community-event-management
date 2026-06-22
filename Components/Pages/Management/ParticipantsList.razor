@@ -1,0 +1,71 @@
+@page "/participants"
+@inject ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "Admin")]
+@attribute [StreamRendering]
+
+<PageTitle>Participants</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>👥 Participants</h1>
+            <p>Manage event attendees and their details</p>
+        </div>
+    </div>
+
+    @if (participants == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var participant in participants)
+                    {
+                        <tr>
+                            <td class="td-name">@participant.Name</td>
+                            <td>@participant.Email</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteParticipant(participant.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Participant>? participants;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadParticipants();
+    }
+
+    private async Task LoadParticipants()
+    {
+        participants = await DbContext.Participants.ToListAsync();
+    }
+
+    private async Task DeleteParticipant(int id)
+    {
+        var participant = await DbContext.Participants.FindAsync(id);
+        if (participant != null)
+        {
+            DbContext.Participants.Remove(participant);
+            await DbContext.SaveChangesAsync();
+            await LoadParticipants();
+        }
+    }
+}

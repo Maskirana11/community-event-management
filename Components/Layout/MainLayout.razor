@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+
+<div class="app-wrapper">
+    <NavMenu />
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title">Community Events</div>
+            <div class="topbar-actions" style="display: flex; align-items: center; gap: 15px;">
+                <AuthorizeView>
+                    <Authorized>
+                        <span style="font-size: 14px; color: var(--text-color);">Welcome, <strong>@context.User.Identity?.Name</strong></span>
+                        @if (context.User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-primary btn-sm" href="events/create">
+                                ➕ New Event
+                            </a>
+                        }
+                        <form action="/Account/Logout" method="post" style="display: inline;">
+                            <AntiforgeryToken />
+                            <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
+                        </form>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="btn btn-primary btn-sm" href="/Account/Login">
+                            Login
+                        </a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </header>
+
+        <main>
+            @Body
+        </main>
+    </div>
+</div>

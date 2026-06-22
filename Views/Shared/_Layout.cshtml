@@ -29,33 +29,41 @@
                asp-controller="Events" asp-action="Index">
                 <span class="nav-icon">📅</span> All Events
             </a>
-            <a class="nav-item" asp-controller="Events" asp-action="Create">
-                <span class="nav-icon">➕</span> Create Event
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="nav-item" asp-controller="Events" asp-action="Create">
+                    <span class="nav-icon">➕</span> Create Event
+                </a>
+            }
 
-            <div class="nav-section-label" style="margin-top:12px">Management</div>
-            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venues" ? "active" : "")"
-               asp-controller="Venues" asp-action="Index">
-                <span class="nav-icon">🏛️</span> Venues
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Activities" ? "active" : "")"
-               asp-controller="Activities" asp-action="Index">
-                <span class="nav-icon">🎯</span> Activities
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Participants" ? "active" : "")"
-               asp-controller="Participants" asp-action="Index">
-                <span class="nav-icon">👥</span> Participants
-            </a>
-            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Registrations" ? "active" : "")"
-               asp-controller="Registrations" asp-action="Index">
-                <span class="nav-icon">📋</span> Registrations
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="nav-section-label" style="margin-top:12px">Management</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Venues" ? "active" : "")"
+                   asp-controller="Venues" asp-action="Index">
+                    <span class="nav-icon">🏛️</span> Venues
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Activities" ? "active" : "")"
+                   asp-controller="Activities" asp-action="Index">
+                    <span class="nav-icon">🎯</span> Activities
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Participants" ? "active" : "")"
+                   asp-controller="Participants" asp-action="Index">
+                    <span class="nav-icon">👥</span> Participants
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Registrations" ? "active" : "")"
+                   asp-controller="Registrations" asp-action="Index">
+                    <span class="nav-icon">📋</span> Registrations
+                </a>
+            }
 
-            <div class="nav-section-label" style="margin-top:12px">User</div>
-            <a class="nav-item" asp-controller="Registrations" asp-action="MyRegistrations">
-                <span class="nav-icon">🎫</span> My Registrations
-            </a>
-        </div>
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <div class="nav-section-label" style="margin-top:12px">User</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "MyRegistrations" ? "active" : "")" asp-controller="Registrations" asp-action="MyRegistrations">
+                    <span class="nav-icon">🎫</span> My Registrations
+                </a>
+            }
 
         <!-- Sidebar footer -->
         <div style="padding: 16px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted);">
@@ -68,13 +76,26 @@
         <!-- Topbar -->
         <header class="topbar">
             <div class="topbar-title">@(ViewData["Title"] ?? "Dashboard")</div>
-            <div class="topbar-actions">
-                <a class="btn btn-secondary btn-sm" asp-controller="Registrations" asp-action="MyRegistrations">
-                    🎫 My Registrations
-                </a>
-                <a class="btn btn-primary btn-sm" asp-controller="Events" asp-action="Create">
-                    ➕ New Event
-                </a>
+            <div class="topbar-actions" style="display: flex; align-items: center; gap: 15px;">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span style="font-size: 14px; color: var(--text-color);">Welcome, <strong>@User.Identity.Name</strong></span>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="btn btn-primary btn-sm" asp-controller="Events" asp-action="Create">
+                            ➕ New Event
+                        </a>
+                    }
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">
+                        Login
+                    </a>
+                }
             </div>
         </header>
 

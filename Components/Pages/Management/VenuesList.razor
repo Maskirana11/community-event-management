@@ -1,0 +1,77 @@
+@page "/venues"
+@inject ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "Admin")]
+@attribute [StreamRendering]
+
+<PageTitle>Venues</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>🏛️ Venues</h1>
+            <p>Manage physical locations for events</p>
+        </div>
+    </div>
+
+    @if (venues == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>Capacity</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var venue in venues)
+                    {
+                        <tr>
+                            <td class="td-name">@venue.Name</td>
+                            <td>@venue.Address</td>
+                            <td>@venue.City</td>
+                            <td>
+                                <span class="badge badge-general">@venue.Capacity</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteVenue(venue.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Venue>? venues;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVenues();
+    }
+
+    private async Task LoadVenues()
+    {
+        venues = await DbContext.Venues.ToListAsync();
+    }
+
+    private async Task DeleteVenue(int id)
+    {
+        var venue = await DbContext.Venues.FindAsync(id);
+        if (venue != null)
+        {
+            DbContext.Venues.Remove(venue);
+            await DbContext.SaveChangesAsync();
+            await LoadVenues();
+        }
+    }
+}

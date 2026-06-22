@@ -1,0 +1,150 @@
+@page "/registrations/register/{EventId:int}"
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@attribute [StreamRendering]
+
+<PageTitle>Register for Event</PageTitle>
+
+<div class="page-container">
+    @if (ev == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Register for @ev.Name</span>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger" style="margin-bottom: 20px;">@errorMessage</div>
+                    }
+
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">@ev.Name</div>
+                        <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;">
+                            <span class="icon">📅</span> @ev.Date.ToString("dddd, MMMM dd, yyyy") at @DateTime.Today.Add(ev.Time).ToString("hh:mm tt")
+                        </div>
+                        @if (ev.MaxCapacity.HasValue)
+                        {
+                            var spotsLeft = ev.MaxCapacity.Value - ev.Registrations.Count;
+                            <div style="font-size: 13px;">
+                                @if (spotsLeft > 0)
+                                {
+                                    <span style="color: var(--success);">@spotsLeft spots remaining</span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--danger);">Event is full</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <p style="font-size: 14px; color: var(--text-secondary);">
+                            You are registering as <strong>@userName</strong> (@userEmail).
+                        </p>
+                    </div>
+
+                    <EditForm Model="this" OnValidSubmit="ConfirmRegistration">
+                        <div class="form-group">
+                            <label>Additional Notes (Optional)</label>
+                            <InputTextArea @bind-Value="notes" class="form-control" rows="3" placeholder="Any dietary requirements, accessibility needs, etc." />
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <button type="submit" class="btn btn-primary" disabled="@isFull">Confirm Registration</button>
+                            <a href="events/details/@EventId" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int EventId { get; set; }
+
+    private Event? ev;
+    private string? userEmail;
+    private string? userName;
+    private string? notes;
+    private string? errorMessage;
+    private bool isFull = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ev = await DbContext.Events
+            .Include(e => e.Registrations)
+            .FirstOrDefaultAsync(e => e.Id == EventId);
+
+        if (ev == null)
+        {
+            Navigation.NavigateTo("events");
+            return;
+        }
+
+        if (ev.MaxCapacity.HasValue && ev.Registrations.Count >= ev.MaxCapacity.Value)
+        {
+            isFull = true;
+            errorMessage = "Sorry, this event is at full capacity.";
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        userEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        userName = authState.User.Identity?.Name ?? "Unknown";
+
+        if (string.IsNullOrWhiteSpace(userEmail))
+        {
+            Navigation.NavigateTo("/Account/Login", true);
+        }
+    }
+
+    private async Task ConfirmRegistration()
+    {
+        if (isFull || string.IsNullOrWhiteSpace(userEmail) || ev == null) return;
+
+        var participant = await DbContext.Participants.FirstOrDefaultAsync(p => p.Email == userEmail);
+        if (participant == null)
+        {
+            participant = new Participant
+            {
+                Name = userName ?? "Unknown",
+                Email = userEmail
+            };
+            DbContext.Participants.Add(participant);
+            await DbContext.SaveChangesAsync();
+        }
+
+        var existing = await DbContext.Registrations
+            .FirstOrDefaultAsync(r => r.ParticipantId == participant.Id && r.EventId == EventId);
+
+        if (existing != null)
+        {
+            errorMessage = "You are already registered for this event.";
+            return;
+        }
+
+        var registration = new Registration
+        {
+            ParticipantId = participant.Id,
+            EventId = EventId,
+            Notes = notes,
+            Status = RegistrationStatus.Confirmed,
+            RegisteredAt = DateTime.UtcNow
+        };
+
+        DbContext.Registrations.Add(registration);
+        await DbContext.SaveChangesAsync();
+
+        Navigation.NavigateTo("registrations/my");
+    }
+}

@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using CommunityEvents.Data;
 using CommunityEvents.Models;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace CommunityEvents.Controllers;
 
+[Authorize(Roles = "Admin")]
 public class ParticipantsController : Controller
 {
     private readonly ApplicationDbContext _context;

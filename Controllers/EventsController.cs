@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using CommunityEvents.Data;
 using CommunityEvents.Models;
 using CommunityEvents.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CommunityEvents.Controllers;
 
@@ -75,6 +76,7 @@ public class EventsController : Controller
     }
 
     // GET: Events/Create
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create()
     {
         var vm = new EventCreateEditViewModel
@@ -88,6 +90,7 @@ public class EventsController : Controller
     // POST: Events/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(EventCreateEditViewModel vm)
     {
         ModelState.Remove("Event.EventVenues");
@@ -116,6 +119,7 @@ public class EventsController : Controller
     }
 
     // GET: Events/Edit/5
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var ev = await _context.Events
@@ -139,6 +143,7 @@ public class EventsController : Controller
     // POST: Events/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id, EventCreateEditViewModel vm)
     {
         if (id != vm.Event.Id) return NotFound();
@@ -174,6 +179,7 @@ public class EventsController : Controller
     }
 
     // GET: Events/Delete/5
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var ev = await _context.Events
@@ -186,6 +192,7 @@ public class EventsController : Controller
     // POST: Events/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var ev = await _context.Events.FindAsync(id);

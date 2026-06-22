@@ -1,0 +1,125 @@
+@page "/registrations/my"
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@attribute [Authorize]
+@attribute [StreamRendering]
+
+<PageTitle>My Registrations</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>🎫 My Registrations</h1>
+            <p>Manage your event sign-ups</p>
+        </div>
+        <a class="btn btn-primary" href="events">Browse More Events</a>
+    </div>
+
+    @if (registrations == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!registrations.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">🎫</div>
+            <div class="empty-state-title">No registrations yet</div>
+            <p>You haven't signed up for any events. Browse the events page to find something interesting!</p>
+            <a class="btn btn-primary" href="events" style="margin-top:16px;">Browse Events</a>
+        </div>
+    }
+    else
+    {
+        <div class="events-grid">
+            @foreach (var r in registrations)
+            {
+                <div class="event-card">
+                    <div class="event-card-header">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <span class="event-type-badge badge-@r.Event.EventType.ToLower()">@r.Event.EventType</span>
+                            <span class="badge badge-@r.Status.ToString().ToLower()">@r.Status</span>
+                        </div>
+                        <div class="event-card-title">@r.Event.Name</div>
+                    </div>
+                    <div class="event-card-body">
+                        <div class="event-meta">
+                            <div class="event-meta-item">
+                                <span class="icon">📅</span>
+                                @r.Event.Date.ToString("ddd, MMM dd yyyy") at @DateTime.Today.Add(r.Event.Time).ToString("hh:mm tt")
+                            </div>
+                            @if (r.Event.EventVenues.Any())
+                            {
+                                <div class="event-meta-item">
+                                    <span class="icon">📍</span>
+                                    @string.Join(", ", r.Event.EventVenues.Select(v => v.Venue.Name))
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="event-card-footer">
+                        <span class="registration-count">Registered on @r.RegisteredAt.ToString("MMM dd")</span>
+                        <div style="display:flex; gap:6px;">
+                            <a class="btn btn-primary btn-sm" href="events/details/@r.EventId">Details</a>
+                            @if (r.Status != RegistrationStatus.Cancelled && r.Event.Date >= DateTime.Today)
+                            {
+                                <button class="btn btn-danger btn-sm" @onclick="() => CancelRegistration(r.Id)">Cancel</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Registration>? registrations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRegistrations();
+    }
+
+    private async Task LoadRegistrations()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var participant = await DbContext.Participants.FirstOrDefaultAsync(p => p.Email == email);
+            if (participant != null)
+            {
+                registrations = await DbContext.Registrations
+                    .Where(r => r.ParticipantId == participant.Id)
+                    .Include(r => r.Event).ThenInclude(e => e.EventVenues).ThenInclude(ev => ev.Venue)
+                    .OrderByDescending(r => r.Event.Date)
+                    .ToListAsync();
+                return;
+            }
+        }
+        registrations = new List<Registration>();
+    }
+
+    private async Task CancelRegistration(int id)
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var participant = await DbContext.Participants.FirstOrDefaultAsync(p => p.Email == email);
+            if (participant != null)
+            {
+                var reg = await DbContext.Registrations.FirstOrDefaultAsync(r => r.Id == id && r.ParticipantId == participant.Id);
+                if (reg != null)
+                {
+                    reg.Status = RegistrationStatus.Cancelled;
+                    await DbContext.SaveChangesAsync();
+                    await LoadRegistrations();
+                }
+            }
+        }
+    }
+}

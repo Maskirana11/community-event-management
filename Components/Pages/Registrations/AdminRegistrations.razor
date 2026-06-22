@@ -1,0 +1,79 @@
+@page "/registrations/admin"
+@inject ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "Admin")]
+@attribute [StreamRendering]
+
+<PageTitle>Registrations</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-header-info">
+            <h1>📋 Registrations</h1>
+            <p>Manage all event registrations</p>
+        </div>
+    </div>
+
+    @if (registrations == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Participant</th>
+                        <th>Event</th>
+                        <th>Status</th>
+                        <th>Registered Date</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reg in registrations)
+                    {
+                        <tr>
+                            <td class="td-name">@reg.Participant?.Name</td>
+                            <td>@reg.Event?.Name</td>
+                            <td><span class="badge badge-@reg.Status.ToString().ToLower()">@reg.Status</span></td>
+                            <td>@reg.RegisteredAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteRegistration(reg.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Registration>? registrations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRegistrations();
+    }
+
+    private async Task LoadRegistrations()
+    {
+        registrations = await DbContext.Registrations
+            .Include(r => r.Participant)
+            .Include(r => r.Event)
+            .OrderByDescending(r => r.RegisteredAt)
+            .ToListAsync();
+    }
+
+    private async Task DeleteRegistration(int id)
+    {
+        var reg = await DbContext.Registrations.FindAsync(id);
+        if (reg != null)
+        {
+            DbContext.Registrations.Remove(reg);
+            await DbContext.SaveChangesAsync();
+            await LoadRegistrations();
+        }
+    }
+}
