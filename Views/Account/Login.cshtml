@@ -3,34 +3,265 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="row justify-content-center" style="margin-top: 40px;">
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body" style="padding: 30px;">
-                <h3 class="text-center mb-4">Welcome Back</h3>
-                <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 
-                    <div class="form-group mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
+<style>
+    .login-page-wrapper {
+        min-height: calc(100vh - 57px);
+        display: flex;
+        align-items: stretch;
+        padding: 0;
+        margin-top: -20px;
+    }
 
-                    <div class="form-group mb-4">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
+    .login-wrap {
+        display: flex;
+        width: 100%;
+        height: calc(100vh - 57px + 20px);
+        border-radius: 0;
+        box-shadow: none;
+        font-family: 'Inter', sans-serif;
+    }
 
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Log In</button>
+    /* ── Left panel ── */
+    .login-left {
+        background: #0F172A;
+        flex: 1;
+        padding: 52px 44px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
 
-                    <div class="text-center">
-                        Don't have an account? <a asp-action="Register">Register here</a>.
-                    </div>
-                </form>
+    .orb {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 40%, #6366F1 0%, #312e81 55%, transparent 80%);
+        opacity: 0.45;
+        top: -100px;
+        right: -100px;
+    }
+
+    .orb2 {
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 60% 60%, #818cf8 0%, #3730a3 60%, transparent 80%);
+        opacity: 0.2;
+        bottom: -40px;
+        left: -60px;
+    }
+
+    .left-tag {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 2.5px;
+        color: #818cf8;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .left-headline {
+        font-family: 'Fraunces', serif;
+        font-size: 42px;
+        font-weight: 600;
+        color: #f8fafc;
+        line-height: 1.2;
+        margin: 0 0 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .left-sub {
+        font-size: 15px;
+        color: #94a3b8;
+        line-height: 1.7;
+        margin: 0;
+        max-width: 280px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .left-dots {
+        display: flex;
+        gap: 8px;
+        margin-top: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #334155;
+    }
+
+    .dot.active {
+        background: #6366F1;
+        width: 24px;
+        border-radius: 4px;
+    }
+
+    /* ── Right panel ── */
+    .login-right {
+        background: #ffffff;
+        flex: 1;
+        padding: 0 72px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .form-title {
+        font-family: 'Fraunces', serif;
+        font-size: 34px;
+        font-weight: 600;
+        color: #0F172A;
+        margin: 0 0 8px;
+    }
+
+    .form-sub {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0 0 28px;
+    }
+
+    .login-field {
+        margin-bottom: 24px;
+    }
+
+    .login-field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+
+    .login-field .form-control {
+        width: 100%;
+        height: 50px;
+        padding: 0 16px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        color: #0f172a;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .login-field .form-control:focus {
+        border-color: #6366F1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        outline: none;
+        background: #fff;
+    }
+
+    .btn-indigo {
+        width: 100%;
+        height: 52px;
+        background: #6366F1;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        margin-top: 10px;
+        margin-bottom: 24px;
+        letter-spacing: 0.3px;
+        transition: background 0.15s;
+    }
+
+    .btn-indigo:hover {
+        background: #4f46e5;
+    }
+
+    .btn-indigo:active {
+        background: #4338ca;
+        transform: scale(0.99);
+    }
+
+    .register-line {
+        font-size: 13px;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .register-line a {
+        color: #6366F1;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .register-line a:hover {
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 640px) {
+        .login-left { display: none; }
+        .login-right { padding: 36px 28px; }
+    }
+</style>
+
+<div class="login-page-wrapper">
+    <div class="login-wrap">
+
+        <!-- Left branding panel -->
+        <div class="login-left">
+            <div class="orb"></div>
+            <div class="orb2"></div>
+            <div>
+                <div class="left-tag">Community Events</div>
+                <p class="left-headline">Where your<br />community<br />comes alive.</p>
+                <p class="left-sub">Discover, host, and connect with the events that matter most to you.</p>
+            </div>
+            <div class="left-dots">
+                <div class="dot"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div>
             </div>
         </div>
+
+        <!-- Right form panel -->
+        <div class="login-right">
+            <p class="form-title">Welcome back</p>
+            <p class="form-sub">Sign in to your account to continue.</p>
+
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="login-field">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                    <span asp-validation-for="Email" class="text-danger" style="font-size:12px;"></span>
+                </div>
+
+                <div class="login-field">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                    <span asp-validation-for="Password" class="text-danger" style="font-size:12px;"></span>
+                </div>
+
+                <button type="submit" class="btn-indigo">Log in</button>
+
+                <div class="register-line">
+                    Don't have an account? <a asp-action="Register">Register here</a>
+                </div>
+            </form>
+        </div>
+
     </div>
 </div>
 
