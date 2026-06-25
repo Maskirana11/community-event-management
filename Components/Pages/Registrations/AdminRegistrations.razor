@@ -1,6 +1,7 @@
 @page "/registrations/admin"
 @inject ApplicationDbContext DbContext
 @attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
 @attribute [StreamRendering]
 
 <PageTitle>Registrations</PageTitle>

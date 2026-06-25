@@ -1,6 +1,7 @@
 @page "/activities"
 @inject ApplicationDbContext DbContext
 @attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
 @attribute [StreamRendering]
 
 <PageTitle>Activities</PageTitle>

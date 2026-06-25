@@ -1,6 +1,7 @@
 @page "/venues"
 @inject ApplicationDbContext DbContext
 @attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
 @attribute [StreamRendering]
 
 <PageTitle>Venues</PageTitle>

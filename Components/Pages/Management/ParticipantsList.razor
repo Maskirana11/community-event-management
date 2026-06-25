@@ -1,6 +1,7 @@
 @page "/participants"
 @inject ApplicationDbContext DbContext
 @attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
 @attribute [StreamRendering]
 
 <PageTitle>Participants</PageTitle>
