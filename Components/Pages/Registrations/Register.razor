@@ -52,7 +52,7 @@
                         </p>
                     </div>
 
-                    <EditForm Model="this" OnValidSubmit="ConfirmRegistration">
+                    <EditForm Model="this" OnValidSubmit="ConfirmRegistration" FormName="registerForm">
                         <div class="form-group">
                             <label>Additional Notes (Optional)</label>
                             <InputTextArea @bind-Value="notes" class="form-control" rows="3" placeholder="Any dietary requirements, accessibility needs, etc." />
