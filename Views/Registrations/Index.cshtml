@@ -50,29 +50,26 @@
                             <td>@r.Event.Date.ToString("MMM dd, yyyy")</td>
                             <td>@r.RegisteredAt.ToString("MMM dd, yyyy")</td>
                             <td><span class="badge badge-@r.Status.ToString().ToLower()">@r.Status</span></td>
-                            <td>
-                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <input type="hidden" name="status" value="@RegistrationStatus.Confirmed" />
-                                        <button type="submit" class="btn btn-success btn-sm" title="Confirm">✅</button>
-                                    </form>
-                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <input type="hidden" name="status" value="@RegistrationStatus.Cancelled" />
-                                        <button type="submit" class="btn btn-warning btn-sm" title="Cancel">⛔</button>
-                                    </form>
-                                    <form asp-action="UpdateStatus" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <input type="hidden" name="status" value="@RegistrationStatus.Attended" />
-                                        <button type="submit" class="btn btn-secondary btn-sm" title="Mark Attended">🎫</button>
-                                    </form>
-                                    <form asp-action="Delete" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="@r.Id" />
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete this registration?')">🗑️</button>
-                                    </form>
-                                </div>
-                            </td>
+                                <td>
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                                        <form asp-action="UpdateStatus" method="post" style="display:inline;" id="form-@r.Id">
+                                            <input type="hidden" name="id" value="@r.Id" />
+                                            <select name="status" class="form-select form-select-sm badge badge-@r.Status.ToString().ToLower()" style="width: auto; display: inline-block;" onchange="document.getElementById('form-@r.Id').submit();">
+                                                @foreach (var status in Enum.GetValues<RegistrationStatus>())
+                                                {
+                                                    if (r.Status == status)
+                                                    {
+                                                        <option value="@status" selected>@status</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@status">@status</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </form>
+                                    </div>
+                                </td>
                         </tr>
                     }
                 </tbody>

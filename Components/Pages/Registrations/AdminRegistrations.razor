@@ -39,9 +39,16 @@
                             <td>@reg.Event?.Name</td>
                             <td><span class="badge badge-@reg.Status.ToString().ToLower()">@reg.Status</span></td>
                             <td>@reg.RegisteredAt.ToString("MMM dd, yyyy")</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteRegistration(reg.Id)">Delete</button>
-                            </td>
+                                <td>
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                                        <select class="form-select form-select-sm badge badge-@reg.Status.ToString().ToLower()" style="width: auto; display: inline-block;" @onchange="@(async (ChangeEventArgs e) => await UpdateStatus(reg.Id, Enum.Parse<RegistrationStatus>(e.Value!.ToString()!)))">
+                                            @foreach (var status in Enum.GetValues<RegistrationStatus>())
+                                            {
+                                                <option value="@status" selected="@(reg.Status == status)">@status</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </td>
                         </tr>
                     }
                 </tbody>
@@ -73,6 +80,17 @@
         if (reg != null)
         {
             DbContext.Registrations.Remove(reg);
+            await DbContext.SaveChangesAsync();
+            await LoadRegistrations();
+        }
+    }
+
+    private async Task UpdateStatus(int id, RegistrationStatus status)
+    {
+        var reg = await DbContext.Registrations.FindAsync(id);
+        if (reg != null)
+        {
+            reg.Status = status;
             await DbContext.SaveChangesAsync();
             await LoadRegistrations();
         }

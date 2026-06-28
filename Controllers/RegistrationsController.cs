@@ -95,7 +95,7 @@ public class RegistrationsController : Controller
             ParticipantId = participant.Id,
             EventId = vm.EventId,
             Notes = vm.Notes,
-            Status = RegistrationStatus.Confirmed,
+            Status = RegistrationStatus.Pending,
             RegisteredAt = DateTime.UtcNow
         };
 
