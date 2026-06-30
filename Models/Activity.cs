@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CommunityEvents.Models;
 
-public class Activity
+public class Activity : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required, MaxLength(200)]
     [Display(Name = "Activity Name")]
     public string Name { get; set; } = string.Empty;

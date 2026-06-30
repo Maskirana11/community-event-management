@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using CommunityEvents.Data;
 using CommunityEvents.Models;
 using CommunityEvents.ViewModels;
+using CommunityEvents.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -46,64 +47,80 @@ public class RegistrationsController : Controller
     [Authorize]
     public async Task<IActionResult> Register(RegisterViewModel vm)
     {
-        var ev = await _context.Events
-            .Include(e => e.Registrations)
-            .FirstOrDefaultAsync(e => e.Id == vm.EventId);
-        if (ev == null) return NotFound();
-
-        // Capacity check
-        if (ev.MaxCapacity.HasValue && ev.Registrations.Count >= ev.MaxCapacity.Value)
+        try
         {
-            TempData["Error"] = "Sorry, this event is at full capacity.";
-            return RedirectToAction("Details", "Events", new { id = vm.EventId });
-        }
+            var ev = await _context.Events
+                .Include(e => e.Registrations)
+                .FirstOrDefaultAsync(e => e.Id == vm.EventId);
+            if (ev == null) return NotFound();
 
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        var name = User.Identity?.Name ?? "Unknown";
-
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            TempData["Error"] = "Could not identify your email.";
-            return RedirectToAction("Index", "Home");
-        }
-
-        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == email);
-        if (participant == null)
-        {
-            // Auto-create participant for the logged-in user
-            participant = new Participant
+            // Capacity check
+            if (ev.MaxCapacity.HasValue && ev.Registrations.Count >= ev.MaxCapacity.Value)
             {
-                Name = name,
-                Email = email
+                throw new EventCapacityExceededException($"Sorry, the event '{ev.Name}' is at full capacity.");
+            }
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            var name = User.Identity?.Name ?? "Unknown";
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                TempData["Error"] = "Could not identify your email.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Email == email);
+            if (participant == null)
+            {
+                // Auto-create participant for the logged-in user
+                participant = new Participant
+                {
+                    Name = name,
+                    Email = email
+                };
+                _context.Participants.Add(participant);
+                await _context.SaveChangesAsync();
+            }
+
+            // Check if already registered
+            var existing = await _context.Registrations
+                .FirstOrDefaultAsync(r => r.ParticipantId == participant.Id && r.EventId == vm.EventId);
+
+            if (existing != null)
+            {
+                throw new ParticipantAlreadyRegisteredException("You are already registered for this event.");
+            }
+
+            var registration = new Registration
+            {
+                ParticipantId = participant.Id,
+                EventId = vm.EventId,
+                Notes = vm.Notes,
+                Status = RegistrationStatus.Pending,
+                RegisteredAt = DateTime.UtcNow
             };
-            _context.Participants.Add(participant);
+
+            _context.Registrations.Add(registration);
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Successfully registered for '{ev.Name}'!";
+            return RedirectToAction("MyRegistrations");
         }
-
-        // Check if already registered
-        var existing = await _context.Registrations
-            .FirstOrDefaultAsync(r => r.ParticipantId == participant.Id && r.EventId == vm.EventId);
-
-        if (existing != null)
+        catch (EventCapacityExceededException ex)
         {
-            TempData["Warning"] = "You are already registered for this event.";
+            TempData["Error"] = ex.Message;
             return RedirectToAction("Details", "Events", new { id = vm.EventId });
         }
-
-        var registration = new Registration
+        catch (ParticipantAlreadyRegisteredException ex)
         {
-            ParticipantId = participant.Id,
-            EventId = vm.EventId,
-            Notes = vm.Notes,
-            Status = RegistrationStatus.Pending,
-            RegisteredAt = DateTime.UtcNow
-        };
-
-        _context.Registrations.Add(registration);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"Successfully registered for '{ev.Name}'!";
-        return RedirectToAction("MyRegistrations");
+            TempData["Warning"] = ex.Message;
+            return RedirectToAction("Details", "Events", new { id = vm.EventId });
+        }
+        catch (Exception)
+        {
+            TempData["Error"] = "An unexpected error occurred during registration.";
+            return RedirectToAction("Details", "Events", new { id = vm.EventId });
+        }
     }
 
     // GET: My Registrations

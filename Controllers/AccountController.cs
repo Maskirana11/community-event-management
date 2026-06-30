@@ -6,6 +6,7 @@ using CommunityEvents.Data;
 using CommunityEvents.ViewModels;
 using CommunityEvents.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace CommunityEvents.Controllers;
 
@@ -51,16 +52,22 @@ public class AccountController : Controller
 
         var user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == model.Email);
         
-        if (user != null && user.PasswordHash == model.Password)
+        if (user != null)
         {
-            var claims = new List<Claim>
+            var passwordHasher = new PasswordHasher<UserAccount>();
+            var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
+
+            if (result == PasswordVerificationResult.Success)
             {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, "User")
-            };
-            await SignInUser(claims);
-            return LocalRedirect(returnUrl);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, "User")
+                };
+                await SignInUser(claims);
+                return LocalRedirect(returnUrl);
+            }
         }
 
         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -88,9 +95,11 @@ public class AccountController : Controller
         var user = new UserAccount
         {
             Name = model.Name,
-            Email = model.Email,
-            PasswordHash = model.Password 
+            Email = model.Email
         };
+
+        var passwordHasher = new PasswordHasher<UserAccount>();
+        user.PasswordHash = passwordHasher.HashPassword(user, model.Password);
 
         _context.UserAccounts.Add(user);
         await _context.SaveChangesAsync();

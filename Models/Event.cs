@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CommunityEvents.Models;
 
-public class Event
+public class Event : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required, MaxLength(200)]
     [Display(Name = "Event Name")]
     public string Name { get; set; } = string.Empty;
@@ -33,8 +31,6 @@ public class Event
     public int? MaxCapacity { get; set; }
 
     public bool IsActive { get; set; } = true;
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
     public ICollection<Registration> Registrations { get; set; } = new List<Registration>();

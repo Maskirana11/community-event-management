@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CommunityEvents.Models;
 
-public class Venue
+public class Venue : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required, MaxLength(200)]
     [Display(Name = "Venue Name")]
     public string Name { get; set; } = string.Empty;

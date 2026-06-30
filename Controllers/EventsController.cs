@@ -5,16 +5,19 @@ using CommunityEvents.Data;
 using CommunityEvents.Models;
 using CommunityEvents.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using CommunityEvents.Interfaces;
 
 namespace CommunityEvents.Controllers;
 
 public class EventsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IEventRepository _eventRepository;
 
-    public EventsController(ApplicationDbContext context)
+    public EventsController(ApplicationDbContext context, IEventRepository eventRepository)
     {
         _context = context;
+        _eventRepository = eventRepository;
     }
 
     // GET: Events
@@ -58,11 +61,7 @@ public class EventsController : Controller
     // GET: Events/Details/5
     public async Task<IActionResult> Details(int id)
     {
-        var ev = await _context.Events
-            .Include(e => e.EventVenues).ThenInclude(ev => ev.Venue)
-            .Include(e => e.EventActivities).ThenInclude(ea => ea.Activity)
-            .Include(e => e.Registrations).ThenInclude(r => r.Participant)
-            .FirstOrDefaultAsync(e => e.Id == id);
+        var ev = await _eventRepository.GetEventWithDetailsAsync(id);
 
         if (ev == null) return NotFound();
 

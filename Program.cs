@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CommunityEvents.Data;
-
+using CommunityEvents.Interfaces;
+using CommunityEvents.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MVC & Blazor
@@ -11,6 +12,10 @@ builder.Services.AddRazorComponents()
 // Add EF Core with SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Repositories
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)

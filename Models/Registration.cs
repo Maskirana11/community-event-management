@@ -10,10 +10,8 @@ public enum RegistrationStatus
     Attended
 }
 
-public class Registration
+public class Registration : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required]
     public int ParticipantId { get; set; }
 
