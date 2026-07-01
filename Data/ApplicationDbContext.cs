@@ -65,5 +65,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Participant>()
             .HasIndex(p => p.Email)
             .IsUnique();
+
+        // UserAccount linked to Participant
+        modelBuilder.Entity<UserAccount>()
+            .HasOne(u => u.Participant)
+            .WithOne()
+            .HasForeignKey<UserAccount>(u => u.ParticipantId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

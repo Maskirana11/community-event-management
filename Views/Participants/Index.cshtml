@@ -12,7 +12,6 @@
         <a class="btn btn-primary" asp-action="Create">➕ Add Participant</a>
     </div>
 
-    <!-- Search -->
     <form method="get" asp-action="Index" style="margin-bottom:24px; display:flex; gap:10px;">
         <input type="text" name="search" class="form-control" placeholder="Search by name or email..." value="@ViewBag.Search" style="max-width:360px;" />
         <button type="submit" class="btn btn-primary">🔍 Search</button>
@@ -58,7 +57,7 @@
                                     @p.Registrations.Count
                                 </span>
                             </td>
-                            <td>@p.RegisteredAt.ToString("MMM dd, yyyy")</td>
+                            <td>@p.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <div style="display:flex; gap:6px;">
                                     <a class="btn btn-secondary btn-sm" asp-action="Details" asp-route-id="@p.Id">Details</a>

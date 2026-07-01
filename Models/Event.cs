@@ -25,7 +25,6 @@ public class Event : BaseEntity
     [Display(Name = "Event Type")]
     public string EventType { get; set; } = "General";
 
-    public string? ImageUrl { get; set; }
 
     [Display(Name = "Max Capacity")]
     public int? MaxCapacity { get; set; }

@@ -12,4 +12,7 @@ public class UserAccount : BaseEntity
 
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
+
+    public int? ParticipantId { get; set; }
+    public Participant? Participant { get; set; }
 }
